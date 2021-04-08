@@ -29,6 +29,7 @@ def train_test_split(images_path, masks_path, test_split=0.3):
     """
 
     image_filenames = [filename for filename in os.walk(images_path)][0][2]
+    import pdb; pdb.set_trace()
     test_set_size = int(test_split*len(image_filenames)) 
     
     root_path = os.path.dirname(os.path.dirname(images_path)) + "/"
@@ -37,18 +38,18 @@ def train_test_split(images_path, masks_path, test_split=0.3):
     
     if not os.path.exists(train_dir):
         print("CREATING:", train_dir)
-        os.makedirs(train_dir+"Images/samples/")
-        os.makedirs(train_dir+"Masks/samples/")
+        os.makedirs(train_dir+"images/samples/")
+        os.makedirs(train_dir+"masks/samples/")
         
     if not os.path.exists(test_dir):
         print("CREATING:", test_dir)
-        os.makedirs(test_dir+"Images/samples/")
-        os.makedirs(test_dir+"Masks/samples/")
+        os.makedirs(test_dir+"images/samples/")
+        os.makedirs(test_dir+"masks/samples/")
         
-    train_image_dir = train_dir+"Images/samples/"
-    train_mask_dir = train_dir+"Masks/samples/"
-    test_image_dir = test_dir+"Images/samples/"
-    test_mask_dir = test_dir+"Masks/samples/"
+    train_image_dir = train_dir+"images/samples/"
+    train_mask_dir = train_dir+"masks/samples/"
+    test_image_dir = test_dir+"images/samples/"
+    test_mask_dir = test_dir+"masks/samples/"
     
     for n, filename in enumerate(image_filenames):
         if n < test_set_size:
@@ -82,7 +83,8 @@ def crop_and_save(images_path, masks_path, new_images_path, new_masks_path, img_
     
     num_skipped = 0
     start_time = time.time()
-    files = next(os.walk(images_path))[2]
+    #files = next(os.walk(images_path))[2]
+    files = [i for i in os.listdir(images_path)]
     print('Total number of files =',len(files))
     
     for image_file in tqdm(files, total = len(files)):
@@ -90,11 +92,12 @@ def crop_and_save(images_path, masks_path, new_images_path, new_masks_path, img_
         image_path = images_path + image_file
         image = cv2.imread(image_path)
         
-        mask_path = masks_path + image_file[:-1]
+        mask_path = masks_path + image_file
         mask = cv2.imread(mask_path, 0)
-        
         num_splits = math.floor((image.shape[0]*image.shape[1])/(img_width*img_height))
         counter = 0
+        if image is None or mask is None:
+            import pdb; pdb.set_trace()
         
         for r in range(0, image.shape[0], img_height):
             for c in range(0, image.shape[1], img_width):
@@ -131,16 +134,16 @@ def crop_and_save(images_path, masks_path, new_images_path, new_masks_path, img_
 
 
 if __name__ == "__main__":
-    root_data_path = "../Data/BuildingsDataSet/"
+    root_data_path = "../Data/MassachusettsRoads/"
     test_to_train_ratio = 0.3 
     img_width = img_height = 256
     num_channels = 3
 
     # Path Information
-    images_path = root_data_path + "sat/"
-    masks_path = root_data_path + "map/"
-    new_images_path = root_data_path + "Images/"
-    new_masks_path = root_data_path + "Masks/"
+    images_path = root_data_path + "Images/"
+    masks_path = root_data_path + "Targets/"
+    new_images_path = root_data_path + "sat/"
+    new_masks_path = root_data_path + "map/"
 
     for path in [new_images_path, new_masks_path]:
         if not os.path.exists(path):
@@ -149,5 +152,5 @@ if __name__ == "__main__":
         else:
              print("DIRECTORY ALREADY EXISTS: {}".format(path))
 
-    crop_and_save(images_path, masks_path, new_image_path, new_mask_path, img_width, img_height)
+    crop_and_save(images_path, masks_path, new_images_path, new_masks_path, img_width, img_height)
     train_test_split(new_images_path, new_masks_path, test_to_train_ratio)
